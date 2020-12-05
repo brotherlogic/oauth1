@@ -12,6 +12,7 @@ import (
 const (
 	oauthTokenSecretParam       = "oauth_token_secret"
 	oauthCallbackConfirmedParam = "oauth_callback_confirmed"
+	userAgentHeaderParam        = "User-Agent"
 )
 
 // Config represents an OAuth1 consumer's (client's) key and secret, the
@@ -31,6 +32,8 @@ type Config struct {
 	Signer Signer
 	// Noncer creates request nonces (defaults to DefaultNoncer)
 	Noncer Noncer
+	//Discogs specific user-agent
+	UserAgent string
 }
 
 // NewConfig returns a new Config with the given consumer key and secret.
@@ -148,6 +151,10 @@ func (c *Config) AccessToken(requestToken, requestSecret, verifier string) (acce
 	if err != nil {
 		return "", "", err
 	}
+
+	// Set the discogs specific user agent
+	req.Header.Set(userAgentHeaderParam, c.UserAgent)
+
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return "", "", err
