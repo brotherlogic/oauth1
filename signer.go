@@ -8,6 +8,7 @@ import (
 	"crypto/sha1"
 	"crypto/sha256"
 	"encoding/base64"
+	"fmt"
 	"hash"
 	"strings"
 )
@@ -18,6 +19,25 @@ type Signer interface {
 	Name() string
 	// Sign signs the message using the given secret key.
 	Sign(key string, message string) (string, error)
+}
+
+//PlainText signer suitable for use with Discogs auth
+type PlainText struct {
+	consumerSecret string
+}
+
+//Name Discogs prefers PLAINTEXT signing
+func (s *PlainText) Name() string {
+	return "PLAINTEXT"
+}
+
+//Sign does the necessary signing steps
+func (s *PlainText) Sign(tokenSecret, message string) (string, error) {
+	// On the initial request we need to pass the consumer secret
+	if tokenSecret == "" {
+		tokenSecret = fmt.Sprintf("%s&", s.consumerSecret)
+	}
+	return fmt.Sprintf("%v&%v", s.consumerSecret, tokenSecret), nil
 }
 
 // HMACSigner signs messages with an HMAC SHA1 digest, using the concatenated
